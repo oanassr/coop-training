@@ -7,6 +7,7 @@ interface AuthState {
   session: Session | null
   profile: Profile | null
   loading: boolean
+  profileLoading: boolean
   configured: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
@@ -19,42 +20,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
 
   const loadProfile = useCallback(async (uid: string | undefined) => {
     if (!uid) {
       setProfile(null)
       return
     }
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('auth_user_id', uid)
-      .maybeSingle()
+    setProfileLoading(true)
+    const { data } = await supabase.from('profiles').select('*').eq('auth_user_id', uid).maybeSingle()
     setProfile((data as Profile) ?? null)
+    setProfileLoading(false)
   }, [])
 
+  // تهيئة الجلسة والاستماع للتغيّرات — لا نستدعي استعلامات داخل onAuthStateChange (تجنّباً للقفل)
   useEffect(() => {
     if (!isConfigured) {
       setLoading(false)
       return
     }
-    let active = true
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return
+    supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
-      await loadProfile(data.session?.user?.id)
       setLoading(false)
     })
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
-      await loadProfile(s?.user?.id)
     })
-    return () => {
-      active = false
-      sub.subscription.unsubscribe()
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  // تحميل الملف عند تغيّر هوية المستخدم
+  useEffect(() => {
+    const uid = session?.user?.id
+    if (!uid) {
+      setProfile(null)
+      return
     }
-  }, [loadProfile])
+    loadProfile(uid)
+  }, [session?.user?.id, loadProfile])
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, profile, loading, configured: isConfigured, signIn, signOut, refreshProfile }}
+      value={{ session, profile, loading, profileLoading, configured: isConfigured, signIn, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

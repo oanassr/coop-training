@@ -30,11 +30,12 @@ import NewRequest from './pages/student/NewRequest'
 import MyRequests from './pages/student/MyRequests'
 
 function RequireAuth({ children, roles }: { children: ReactNode; roles?: Role[] }) {
-  const { session, profile, loading, configured } = useAuth()
+  const { session, profile, loading, profileLoading, configured } = useAuth()
   const location = useLocation()
   if (!configured) return <Navigate to="/setup" replace />
   if (loading) return <PageLoader />
   if (!session) return <Navigate to="/login" replace state={{ from: location }} />
+  if (profileLoading) return <PageLoader label="جارٍ تحميل بياناتك…" />
   if (!profile)
     return (
       <div className="grid min-h-screen place-items-center p-6 text-center">
