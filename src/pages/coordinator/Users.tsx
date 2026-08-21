@@ -5,6 +5,7 @@ import { useToast } from '../../lib/toast'
 import { Profile, Role, ROLE_LABEL } from '../../lib/types'
 import { PageLoader, EmptyState, Modal, Spinner } from '../../components/ui'
 import { FileUpload } from '../../components/FileUpload'
+import { CredentialsModal, Creds } from '../../components/CredentialsModal'
 import { initials } from '../../lib/format'
 import {
   UserPlus,
@@ -50,6 +51,7 @@ export default function Users() {
   const [form, setForm] = useState({ ...emptyForm })
   const [saving, setSaving] = useState(false)
   const [inviting, setInviting] = useState<string | null>(null)
+  const [creds, setCreds] = useState<Creds | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -140,19 +142,13 @@ export default function Users() {
   const invite = async (p: Profile) => {
     setInviting(p.id)
     try {
-      const { error } = await supabase.functions.invoke('invite-user', {
-        body: { profile_id: p.id, redirect_to: `${window.location.origin}${window.location.pathname}#/activate` },
-      })
+      const { data, error } = await supabase.functions.invoke('invite-user', { body: { profile_id: p.id } })
       if (error) throw error
-      toast.show(`تم إرسال رابط التفعيل إلى ${p.kku_email}`)
+      if (data?.error) throw new Error(data.error)
+      setCreds({ name: p.full_name, email: data.email, password: data.password, emailed: !!data.emailed })
       load()
     } catch (e: any) {
-      toast.show(
-        e?.message?.includes('Function not found') || e?.message?.includes('Failed to send')
-          ? 'دالة الدعوة غير منشورة بعد. راجع خطوات النشر في README.'
-          : e?.message || 'تعذّر إرسال الدعوة',
-        'error',
-      )
+      toast.show(e?.message || 'تعذّر إنشاء الحساب', 'error')
     } finally {
       setInviting(null)
     }
@@ -268,7 +264,7 @@ export default function Users() {
                         <button
                           onClick={() => invite(p)}
                           disabled={inviting === p.id}
-                          title="إرسال رابط التفعيل"
+                          title="تفعيل الحساب وإنشاء كلمة مرور"
                           className="rounded-lg p-2 text-kku-600 hover:bg-kku-50"
                         >
                           {inviting === p.id ? (
@@ -405,6 +401,8 @@ export default function Users() {
           </button>
         </div>
       </Modal>
+
+      <CredentialsModal creds={creds} onClose={() => setCreds(null)} />
     </div>
   )
 }

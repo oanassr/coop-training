@@ -272,7 +272,10 @@ create policy p_profiles_select on public.profiles for select using (
   )
 );
 drop policy if exists p_profiles_insert on public.profiles;
-create policy p_profiles_insert on public.profiles for insert with check (public.is_admin_coord());
+create policy p_profiles_insert on public.profiles for insert with check (
+  public.is_admin_coord()
+  or (public.my_role() = 'supervisor' and role = 'student')  -- المشرف يضيف طلاباً
+);
 drop policy if exists p_profiles_update on public.profiles;
 create policy p_profiles_update on public.profiles for update using (
   public.is_admin_coord() or auth_user_id = auth.uid()
@@ -303,6 +306,12 @@ drop policy if exists p_assign_write on public.student_assignments;
 create policy p_assign_write on public.student_assignments for all using (
   public.is_admin_coord()
 ) with check (public.is_admin_coord());
+-- المشرف يسند طلاباً لنفسه
+drop policy if exists p_assign_insert_sup on public.student_assignments;
+create policy p_assign_insert_sup on public.student_assignments for insert with check (
+  public.is_admin_coord()
+  or (public.my_role() = 'supervisor' and supervisor_id = public.current_profile_id())
+);
 
 -- ---- letter_requests ----
 drop policy if exists p_req_select on public.letter_requests;
