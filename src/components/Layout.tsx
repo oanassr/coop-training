@@ -14,6 +14,7 @@ import {
   Settings as SettingsIcon,
   GraduationCap,
   ClipboardCheck,
+  PenLine,
   Stamp,
   Search,
   FilePlus2,
@@ -55,6 +56,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: '/', label: 'لوحة المعلومات', icon: <LayoutDashboard className="h-5 w-5" /> },
     { to: '/my-students', label: 'طلابي', icon: <GraduationCap className="h-5 w-5" /> },
     { to: '/review', label: 'طلبات المراجعة', icon: <ClipboardCheck className="h-5 w-5" /> },
+    { to: '/my-signature', label: 'توقيعي', icon: <PenLine className="h-5 w-5" /> },
   ],
   student: [
     { to: '/', label: 'لوحة المعلومات', icon: <LayoutDashboard className="h-5 w-5" /> },

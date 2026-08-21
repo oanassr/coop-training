@@ -193,11 +193,11 @@ create trigger trg_request_number before insert on public.letter_requests
 -- توليد رقم الخطاب الرسمي (يزيد العدّاد ذرّياً)
 create or replace function public.next_letter_number()
 returns text language plpgsql security definer set search_path = public as $$
-declare n int; pfx text;
+declare n int;
 begin
   update public.settings set letter_counter = letter_counter + 1, updated_at = now()
-    where id = 1 returning letter_counter, letter_prefix into n, pfx;
-  return pfx || '/' || lpad(n::text, 4, '0') || '/' || to_char(now(),'YYYY');
+    where id = 1 returning letter_counter into n;
+  return lpad(n::text, 4, '0') || '/' || to_char(now(),'YYYY');
 end $$;
 
 -- تحديث updated_at

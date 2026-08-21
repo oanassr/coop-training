@@ -31,7 +31,6 @@ export default function SettingsPage() {
         unit_name: form.unit_name,
         unit_supervisor_name: form.unit_supervisor_name,
         current_term: form.current_term,
-        letter_prefix: form.letter_prefix,
         letter_template: form.letter_template,
         logo_url: form.logo_url,
         stamp_url: form.stamp_url,
@@ -95,20 +94,14 @@ export default function SettingsPage() {
         <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-ink">
           <Stamp className="h-5 w-5 text-kku-600" /> اعتماد وحدة التدريب
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="label">اسم مشرف وحدة التدريب</label>
-            <input
-              className="input"
-              placeholder="الاسم الذي يظهر تحت توقيع الوحدة"
-              value={form.unit_supervisor_name || ''}
-              onChange={(e) => set({ unit_supervisor_name: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="label">بادئة رقم الخطاب</label>
-            <input className="input text-left" dir="ltr" value={form.letter_prefix} onChange={(e) => set({ letter_prefix: e.target.value })} />
-          </div>
+        <div>
+          <label className="label">اسم مشرف وحدة التدريب</label>
+          <input
+            className="input"
+            placeholder="الاسم الذي يظهر تحت توقيع الوحدة"
+            value={form.unit_supervisor_name || ''}
+            onChange={(e) => set({ unit_supervisor_name: e.target.value })}
+          />
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <FileUpload

@@ -22,6 +22,7 @@ import SettingsPage from './pages/coordinator/Settings'
 
 import MyStudents from './pages/supervisor/MyStudents'
 import Review from './pages/supervisor/Review'
+import MySignature from './pages/supervisor/MySignature'
 
 import Queue from './pages/unit/Queue'
 
@@ -88,6 +89,7 @@ export default function App() {
             {/* المشرف */}
             <Route path="/my-students" element={<Guard roles={['supervisor']}><MyStudents /></Guard>} />
             <Route path="/review" element={<Guard roles={['supervisor']}><Review /></Guard>} />
+            <Route path="/my-signature" element={<Guard roles={['supervisor', 'training_unit']}><MySignature /></Guard>} />
 
             {/* وحدة التدريب */}
             <Route path="/queue" element={<Guard roles={['training_unit', 'admin', 'coordinator']}><Queue /></Guard>} />
