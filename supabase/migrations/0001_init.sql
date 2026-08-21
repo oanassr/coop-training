@@ -142,7 +142,7 @@ create table if not exists public.settings (
   unit_signature_url text,
   stamp_url     text,
   logo_url      text,
-  current_term  text not null default '1447هـ - الفصل الأول',
+  current_term  text not null default 'الفصل الأول 1448هـ',
   letter_prefix text not null default 'ت.ت',
   letter_counter int not null default 0,
   letter_template text not null default

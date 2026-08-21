@@ -3,7 +3,8 @@ import { RequestStatus } from './types'
 export function hijriDate(d: Date | string = new Date()): string {
   const date = typeof d === 'string' ? new Date(d) : d
   try {
-    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-nu-latn', {
+    // تقويم أم القرى الرسمي المعتمد في السعودية، بأرقام لاتينية
+    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
