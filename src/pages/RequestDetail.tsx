@@ -10,7 +10,7 @@ import { LetterRequest, LetterAction, STATUS_LABEL } from '../lib/types'
 import { PageLoader, StatusBadge, Modal, Spinner } from '../components/ui'
 import { LetterDocument } from '../components/LetterDocument'
 import { WORKFLOW_STEPS, stepIndexForStatus, dateTime, initials } from '../lib/format'
-import { makeQr, downloadPdf, elementToPdfBlob } from '../lib/pdf'
+import { makeQr, downloadPdf } from '../lib/pdf'
 import {
   ArrowRight,
   Check,
@@ -158,25 +158,11 @@ export default function RequestDetail() {
 
       toast.show('تم إصدار الخطاب بنجاح')
       await load()
-      // رفع نسخة PDF أرشيفية (أفضل جهد)
-      setTimeout(() => uploadArchive(letterNumber), 600)
+      // لا نؤرشف نسخة PDF في التخزين — يُنشأ الخطاب لحظياً عند التحميل من البيانات المخزّنة
     } catch (e: any) {
       toast.show(e.message || 'تعذّر الإصدار', 'error')
     } finally {
       setBusy(false)
-    }
-  }
-
-  const uploadArchive = async (letterNumber: string) => {
-    if (!letterRef.current) return
-    try {
-      const blob = await elementToPdfBlob(letterRef.current)
-      const path = `${req.id}.pdf`
-      await supabase.storage.from('letters').upload(path, blob, { upsert: true, contentType: 'application/pdf' })
-      const { data } = supabase.storage.from('letters').getPublicUrl(path)
-      await supabase.from('issued_letters').update({ pdf_url: data.publicUrl }).eq('request_id', req.id)
-    } catch {
-      /* أرشفة اختيارية */
     }
   }
 
