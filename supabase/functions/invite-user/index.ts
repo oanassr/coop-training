@@ -28,7 +28,9 @@ Deno.serve(async (req) => {
     const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
     const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const RESEND = Deno.env.get('RESEND_API_KEY')
+    const BREVO = Deno.env.get('BREVO_API_KEY')
     const MAIL_FROM = Deno.env.get('MAIL_FROM') || 'onboarding@resend.dev'
+    const MAIL_FROM_NAME = Deno.env.get('MAIL_FROM_NAME') || 'نظام التدريب التعاوني'
 
     const authHeader = req.headers.get('Authorization') || ''
     if (!authHeader) return json({ error: 'غير مصرّح' }, 401)
@@ -98,23 +100,44 @@ Deno.serve(async (req) => {
     })
 
     // إرسال بالإيميل إن توفّرت خدمة بريد
+    const loginUrl = 'https://oanassr.github.io/coop-training/'
+    const subject = 'بيانات الدخول - نظام التدريب التعاوني'
+    const html = `<div dir="rtl" style="font-family:Tahoma,Arial;line-height:1.9;color:#0f172a">
+      <h2 style="color:#0f7d45;margin:0 0 8px">نظام التدريب التعاوني — جامعة الملك خالد</h2>
+      <p>مرحباً ${target.full_name}،</p>
+      <p>تم إنشاء حسابك في نظام التدريب التعاوني لكلية الأعمال. بيانات الدخول:</p>
+      <table style="border-collapse:collapse;margin:12px 0">
+        <tr><td style="padding:6px 12px;background:#eefaf1"><b>اسم المستخدم</b></td><td style="padding:6px 12px" dir="ltr">${target.kku_email}</td></tr>
+        <tr><td style="padding:6px 12px;background:#eefaf1"><b>كلمة المرور</b></td><td style="padding:6px 12px" dir="ltr">${password}</td></tr>
+      </table>
+      <p><a href="${loginUrl}" style="background:#0f7d45;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none">الدخول إلى النظام</a></p>
+      <p style="color:#64748b;font-size:13px">يُنصح بتغيير كلمة المرور بعد أول دخول.</p>
+    </div>`
+
     let emailed = false
-    if (RESEND) {
-      try {
-        const html = `<div dir="rtl" style="font-family:Tahoma,Arial;line-height:1.9">
-          <h2 style="color:#0f7d45">نظام التدريب التعاوني — جامعة الملك خالد</h2>
-          <p>مرحباً ${target.full_name}،</p>
-          <p>تم إنشاء حسابك في نظام التدريب التعاوني. بيانات الدخول:</p>
-          <p><b>اسم المستخدم:</b> ${target.kku_email}<br/><b>كلمة المرور:</b> ${password}</p>
-          <p>يمكنك تغيير كلمة المرور بعد الدخول.</p>
-        </div>`
+    try {
+      if (BREVO) {
+        const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: { 'api-key': BREVO, 'Content-Type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify({
+            sender: { email: MAIL_FROM, name: MAIL_FROM_NAME },
+            to: [{ email: target.kku_email, name: target.full_name }],
+            subject,
+            htmlContent: html,
+          }),
+        })
+        emailed = r.ok
+      } else if (RESEND) {
         const r = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: MAIL_FROM, to: target.kku_email, subject: 'بيانات الدخول - نظام التدريب التعاوني', html }),
+          body: JSON.stringify({ from: `${MAIL_FROM_NAME} <${MAIL_FROM}>`, to: target.kku_email, subject, html }),
         })
         emailed = r.ok
-      } catch { emailed = false }
+      }
+    } catch {
+      emailed = false
     }
 
     return json({ ok: true, password, email: target.kku_email, emailed })
