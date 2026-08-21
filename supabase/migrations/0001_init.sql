@@ -294,6 +294,12 @@ drop policy if exists p_entities_write on public.training_entities;
 create policy p_entities_write on public.training_entities for all using (
   public.is_staff()
 ) with check (public.is_staff());
+-- الطالب يضيف جهة جديدة (غير معتمدة) أثناء تقديم طلبه
+drop policy if exists p_entities_insert_student on public.training_entities;
+create policy p_entities_insert_student on public.training_entities for insert with check (
+  public.is_staff()
+  or (public.my_role() = 'student' and is_approved = false and created_by = public.current_profile_id())
+);
 
 -- ---- student_assignments ----
 drop policy if exists p_assign_select on public.student_assignments;

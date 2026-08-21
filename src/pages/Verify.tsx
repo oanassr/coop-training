@@ -78,7 +78,7 @@ export default function Verify() {
           )}
         </div>
         <p className="mt-6 text-center text-xs text-ink-muted">
-          نظام التدريب التعاوني — كلية الأعمال، جامعة الملك خالد
+          نظام اعتماد طلبات التدريب التعاوني — كلية الأعمال، جامعة الملك خالد
         </p>
       </div>
     </div>

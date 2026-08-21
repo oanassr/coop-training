@@ -149,7 +149,7 @@ export default function Layout() {
             </button>
             <div>
               <p className="text-xs font-bold text-ink-muted">{settings?.college_name ?? 'كلية الأعمال'}</p>
-              <h1 className="text-base font-extrabold text-ink">نظام التدريب التعاوني</h1>
+              <h1 className="text-sm font-extrabold text-ink sm:text-base">نظام اعتماد طلبات التدريب التعاوني</h1>
             </div>
           </div>
           <div className="flex items-center gap-3">
